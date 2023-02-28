@@ -5,7 +5,26 @@ services:
     image: webcrawler.web:latest
     ports:
       - '9110:9110'
+      - '8558:8558' 
       - '8080:80'
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      CLUSTER__PORT: 4055
+      CLUSTER__STARTUPMETHOD: "ConfigDiscovery"
+      CLUSTER__DISCOVERY__SERVICENAME: "ConfigService"
+      CLUSTER__DISCOVERY__CONFIGENDPOINTS__0: "webcrawler.crawlservice.1:8558"
+      CLUSTER__DISCOVERY__CONFIGENDPOINTS__1: "webcrawler.crawlservice.2:8558"
+      CLUSTER__DISCOVERY__CONFIGENDPOINTS__2: "webcrawler.crawlservice.3:8558"
+    depends_on:
+      - webcrawler.crawlservice.1
+      - webcrawler.crawlservice.2
+      - webcrawler.crawlservice.3
+  webcrawler.web1:
+    image: webcrawler.web:latest
+    ports:
+      - '9111:9110'
+      - '8559:8558' 
+      - '8081:80'
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       CLUSTER__PORT: 4055

@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster.Hosting;
+using Akka.Cluster.Tools.Singleton;
 using Akka.DependencyInjection;
 using Akka.Hosting;
 using Akka.Remote.Hosting;
@@ -60,6 +61,13 @@ namespace WebCrawler.TrackerService
                                 
                                 var downloadMaster = system.ActorOf(Props.Create(() => new DownloadsMaster()), "downloads");
                                 registry.Register<DownloadsMaster>(downloadMaster);
+
+                                system.ActorOf(ClusterSingletonManager.Props(
+                                    singletonProps: Props.Create(() => new CustomSingleton()),
+                                    terminationMessage: PoisonPill.Instance,
+                                    settings: ClusterSingletonManagerSettings.Create(system)
+                                        .WithRole("tracker")),
+                                    name: "customsingleton");
                             });
                     });
                 })

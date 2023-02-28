@@ -7,6 +7,7 @@
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Cluster.Hosting;
+using Akka.Cluster.Tools.Singleton;
 using Akka.DependencyInjection;
 using Akka.Hosting;
 using Akka.Remote.Hosting;
@@ -64,6 +65,17 @@ namespace WebCrawler.Web
                                 var processor = system.ActorOf(
                                     Props.Create(() => new CommandProcessor(router)),
                                     "commands");
+
+                                var singletonProxy = system.ActorOf(ClusterSingletonProxy.Props(
+                                    singletonManagerPath: "/user/customsingleton",
+                                    settings: ClusterSingletonProxySettings.Create(system)
+                                    .WithRole("tracker")),
+                                    name: "singletonProxy");
+
+                                var webActor = system.ActorOf(
+                                    Props.Create(() => new WebActor(singletonProxy)),
+                                    "webactor");
+
                                 var signalRProps = DependencyResolver.For(system).Props<SignalRActor>(processor);
                                 var signalRActor = system.ActorOf(signalRProps, "signalr");
                                 registry.Register<SignalRActor>(signalRActor);
